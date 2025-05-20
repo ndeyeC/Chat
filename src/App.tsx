@@ -5,6 +5,10 @@ import AdminPage from './pages/AdminPage';
 import UserPage from './pages/UserPage';
 import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
+import GroupChatPage from './pages/GroupChatPage'; 
+import Register from './pages/Register';
+
+
 import CreateGroupPage from './pages/groupe/CreateGroup';  // Importer la page de création de groupe
 
 function App() {
@@ -14,6 +18,9 @@ function App() {
         <Routes>
           {/* Page d'accueil */}
           <Route path="/" element={<HomePage />} />
+
+          <Route path="/register" element={<Register />} />
+
           
           {/* Page de connexion */}
           <Route path="/login" element={<LoginPage />} />
@@ -34,6 +41,13 @@ function App() {
               <UserPage />
             </PrivateRoute>
           } />
+
+          <Route path="/group/:groupId" element={
+      <PrivateRoute>
+      <GroupChatPage />
+      </PrivateRoute>
+     } />
+     
         </Routes>
       </AuthProvider>
     </Router>

@@ -4,11 +4,10 @@ import { useAuth } from '../components/auth/AuthContext';
 import { Box, Button, Typography, Container, Stack } from '@mui/material';
 import { auth } from '../services/firebase';
 import { signOut } from 'firebase/auth';
-import AdminPage from './AdminPage'; // ou le bon chemin
-
+import AdminPage from './AdminPage';
 
 const HomePage: React.FC = () => {
-  const { currentUser, isAdmin } = useAuth();
+  const { currentUser, isAdmin, userData } = useAuth(); // Assure-toi que userData contient `username`
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -24,57 +23,58 @@ const HomePage: React.FC = () => {
     <Container maxWidth="md">
       <Box textAlign="center" mt={8}>
         <Typography variant="h2" component="h1" gutterBottom>
-          Bienvenue sur EduChat
+          Bienvenue {userData?.name || 'sur EduChat'}
         </Typography>
-        
+
         {currentUser ? (
-  <>
-    <Typography variant="h5" sx={{ mb: 4 }}>
-      Vous êtes connecté en tant que {isAdmin ? 'administrateur' : 'utilisateur'}
-    </Typography>
+          <>
+            {isAdmin ? (
+              <AdminPage />
+            ) : (
+              <Stack direction="column" spacing={2} alignItems="center">
+                <Button
+                  variant="contained"
+                  size="large"
+                  onClick={() => navigate('/user')}
+                  sx={{ width: 'fit-content' }}
+                >
+                  Accéder au tableau de bord
+                </Button>
 
-    {isAdmin ? (
-      // Si admin, on affiche le dashboard admin
-      <AdminPage />
-    ) : (
-      // Sinon, boutons pour utilisateur normal
-      <Stack direction="column" spacing={2} alignItems="center">
-        <Button 
-          variant="contained" 
-          size="large"
-          onClick={() => navigate('/user')}
-          sx={{ width: 'fit-content' }}
-        >
-          Accéder au tableau de bord
-        </Button>
-        
-        <Button
-          variant="outlined"
-          color="secondary"
-          onClick={handleLogout}
-          sx={{ width: 'fit-content' }}
-        >
-          Déconnexion
-        </Button>
-      </Stack>
-    )}
-  </>
-) : (
-  <Box mt={4}>
-    <Button 
-      variant="contained" 
-      size="large"
-      onClick={() => navigate('/login')}
-      sx={{ px: 4, py: 2 }}
-    >
-      Se connecter
-    </Button>
-  </Box>
-)}
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={handleLogout}
+                  sx={{ width: 'fit-content' }}
+                >
+                  Déconnexion
+                </Button>
+              </Stack>
+            )}
+          </>
+        ) : (
+          <Box mt={4}>
+            <Button
+              variant="contained"
+              size="large"
+              onClick={() => navigate('/login')}
+              sx={{ px: 4, py: 2 }}
+            >
+              Se connecter
+            </Button>
 
-        </Box>
-        </Container>
-    );
+            <Button
+              variant="text"
+              onClick={() => navigate('/register')}
+              sx={{ mt: 2 }}
+            >
+              Créer un compte
+            </Button>
+          </Box>
+        )}
+      </Box>
+    </Container>
+  );
 };
 
 export default HomePage;

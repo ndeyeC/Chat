@@ -7,50 +7,63 @@ interface AppUser extends User {
   isAdmin?: boolean;
 }
 
+interface UserData {
+  name: string;
+  email?: string;
+  role?: string;
+}
+
 interface AuthContextType {
   currentUser: AppUser | null;
   loading: boolean;
   isAdmin: boolean;
+  userData: UserData | null;
 }
 
 const AuthContext = createContext<AuthContextType>({
   currentUser: null,
   loading: true,
   isAdmin: false,
+  userData: null,
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [userData, setUserData] = useState<UserData | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setLoading(true);
-      
+
       if (user) {
         try {
-          // Vérifier le rôle dans Firestore
           const userDoc = await getDoc(doc(db, 'users', user.uid));
-          const userData = userDoc.data();
-          const adminStatus = userData?.role === 'admin';
-          
+          const userDataFromDB = userDoc.data() as UserData | undefined;
+
+          const adminStatus = userDataFromDB?.role === 'admin';
+
           setIsAdmin(adminStatus);
           setCurrentUser({
             ...user,
             isAdmin: adminStatus,
-            email: userData?.email || user.email
+            email: userDataFromDB?.email || user.email,
           });
+
+          setUserData(userDataFromDB ?? null);
         } catch (error) {
           console.error("Error fetching user data:", error);
           setIsAdmin(false);
           setCurrentUser(user);
+          setUserData(null);
         }
       } else {
         setIsAdmin(false);
         setCurrentUser(null);
+        setUserData(null);
       }
-      
+
       setLoading(false);
     });
 
@@ -58,7 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ currentUser, loading, isAdmin }}>
+    <AuthContext.Provider value={{ currentUser, loading, isAdmin, userData }}>
       {children}
     </AuthContext.Provider>
   );
