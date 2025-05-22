@@ -63,18 +63,17 @@ const Chat = ({ groupId }) => {
         ...doc.data()
       }));
       setMessages(msgs);
-      scrollToBottom();
     });
 
     return () => unsubscribe();
   }, [groupId]);
+
 
   useEffect(() => {
     const container = messagesContainerRef.current;
     if (container) {
       const handleScroll = () => {
         const { scrollTop, scrollHeight, clientHeight } = container;
-        // Affiche le bouton si on est à plus de 100px du bas
         setShowScrollButton(scrollTop < scrollHeight - clientHeight - 100);
       };
 
@@ -82,6 +81,11 @@ const Chat = ({ groupId }) => {
       return () => container.removeEventListener('scroll', handleScroll);
     }
   }, []);
+useEffect(() => {
+  if (!loading && messages.length > 0) {
+    scrollToBottom();
+  }
+}, [loading, messages]);
 
   useEffect(() => {
     if (!groupId) return;
@@ -113,7 +117,6 @@ const Chat = ({ groupId }) => {
         senderUsername: currentUserData.username,
         createdAt: Timestamp.now()
       });
-      scrollToBottom();
     } catch (error) {
       console.error("Erreur lors de l'envoi du message :", error);
       setNewMessage(messageToSend);
