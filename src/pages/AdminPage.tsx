@@ -122,9 +122,9 @@ const AdminPage: React.FC = () => {
 
       {/* Boutons admin */}
       <Box mt={4}>
-        <Typography variant="h6" sx={{ mb: 2 }}>
+       {/* <Typography variant="h6" sx={{ mb: 2 }}>
           Fonctionnalités administrateur
-        </Typography>
+        </Typography>*/} 
         <Button 
           variant="outlined" 
           onClick={() => navigate('/admin/groups')}

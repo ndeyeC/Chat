@@ -8,11 +8,15 @@ import HomePage from './pages/HomePage';
 import GroupChatPage from './pages/GroupChatPage'; 
 import Register from './pages/Register';
 
+import ResetPasswordPage from './pages/ResetPasswordPage';
+
+
 
 import CreateGroupPage from './pages/groupe/CreateGroup';  // Importer la page de création de groupe
 
 function App() {
   return (
+    
     <Router>
       <AuthProvider>
         <Routes>
@@ -21,7 +25,8 @@ function App() {
 
           <Route path="/register" element={<Register />} />
 
-          
+<Route path="/reset" element={<ResetPasswordPage />} />
+
           {/* Page de connexion */}
           <Route path="/login" element={<LoginPage />} />
 
@@ -50,6 +55,9 @@ function App() {
      
         </Routes>
       </AuthProvider>
+
+
+
     </Router>
   );
 }

@@ -1,0 +1,237 @@
+/* Container principal */
+.home-container {
+  margin: 48px auto 48px auto;
+  max-width: 960px;
+  background-color: #f5f7fa;
+  border-radius: 16px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  padding: 32px;
+  font-family: 'Roboto', sans-serif;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Header avec fond bleu */
+.home-header {
+  padding: 24px;
+  background-color: #1976d2;
+  color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  text-align: center;
+  margin-bottom: 48px;
+  user-select: none;
+}
+
+.home-header h1 {
+  font-weight: 700;
+  font-size: 2.5rem;
+  margin-bottom: 8px;
+}
+
+.home-header p {
+  font-style: italic;
+  font-weight: 500;
+  color: #bbdefb;
+  margin-top: 0;
+}
+
+/* Boutons d’action */
+.home-buttons {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+  margin-bottom: 15px;
+}
+
+.home-button-primary {
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  padding: 12px 36px !important;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  width: fit-content;
+  box-shadow: 0 4px 6px rgba(25, 118, 210, 0.4) !important;
+  margin: 5px;
+}
+
+.home-button-primary:hover {
+  background-color:white;
+  color:  #1976d2;
+    transform: scale(1.05);
+}
+
+.home-button-secondary {
+  background: #1976d2 !important;
+  border: none;
+  color: white !important;
+  padding: 15px 37px !important;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+  width: fit-content;
+  box-shadow: 0 4px 6px rgba(60, 65, 209, 0.2) !important;
+    margin: 5px;
+
+}
+
+.home-button-secondary:hover {
+  background-color: #1976d2;
+  color: white;
+  transform: scale(1.05);
+}
+
+/* Section "Pourquoi choisir EduChat" */
+.home-advantages {
+  background-color: white;
+  padding: 32px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  margin-bottom: 48px;
+  text-align: center;
+}
+
+.home-advantages h2 {
+  font-weight: 600;
+  margin-bottom: 24px;
+  font-size: 1.8rem;
+  color: #333;
+}
+
+.advantages-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+}
+
+.advantage-item {
+  padding: 12px;
+  background: #e3f2fd;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(25, 118, 210, 0.15);
+  transition: transform 0.3s ease;
+}
+
+.advantage-item:hover {
+  transform: translateY(-8px);
+}
+
+.advantage-icon {
+  font-size: 40px;
+  color: #1976d2;
+  margin-bottom: 12px;
+}
+
+.advantage-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #1976d2;
+  font-size: 1.2rem;
+}
+
+.advantage-desc {
+  font-size: 0.95rem;
+  color: #555;
+}
+
+/* Section Témoignages */
+.testimonials {
+  background-color: #ffffff;
+  padding: 32px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  margin-bottom: 48px;
+  text-align: center;
+}
+
+.testimonials h2 {
+  font-weight: 600;
+  margin-bottom: 24px;
+  font-size: 1.8rem;
+  color: #333;
+}
+
+.testimonials-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
+}
+
+.testimonial {
+  flex: 1 1 280px;
+  background: #e8f0fe;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.2);
+  font-style: italic;
+  color: #1976d2;
+  position: relative;
+}
+
+.testimonial p {
+  font-size: 1rem;
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+
+.testimonial footer {
+  font-weight: 700;
+  font-style: normal;
+  text-align: right;
+  color: #1565c0;
+}
+
+/* Footer */
+.home-footer {
+  text-align: center;
+  color: #666;
+  font-size: 0.875rem;
+  margin-top: 32px;
+  user-select: none;
+}
+
+/* Bouton retour en haut */
+.scroll-to-top {
+  position: fixed;
+  bottom: 40px;
+  right: 40px;
+  background-color: #1976d2;
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  cursor: pointer;
+  color: white;
+  box-shadow: 0 4px 10px rgba(25, 118, 210, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  z-index: 1000;
+}
+
+.scroll-to-top:hover {
+  background-color: #1565c0;
+  transform: scale(1.15);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .home-header h1 {
+    font-size: 2rem;
+  }
+  .home-buttons {
+    gap: 12px;
+  }
+  .advantages-grid {
+    grid-template-columns: 1fr;
+  }
+  .testimonials-grid {
+    flex-direction: column;
+  }
+}

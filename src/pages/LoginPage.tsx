@@ -1,73 +1,185 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../services/firebase';
-import { Box, Button, TextField, Typography, Container, Paper, Alert } from '@mui/material';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../services/firebase";
+import { sendPasswordResetEmail } from "firebase/auth";
+
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Paper,
+  Alert,
+  Link,
+} from "@mui/material";
+import "../App.css"; // Importez le fichier CSS
 
 const LoginPage: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [showReset, setShowReset] = useState(false);
+const [resetEmail, setResetEmail] = useState("");
+const [resetMessage, setResetMessage] = useState("");
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate('/'); // Redirige vers la page d'accueil après connexion
+      navigate("/"); // Redirige vers la page d'accueil après connexion
     } catch (err) {
-      setError('Identifiants incorrects ou problème de connexion');
+      setError("Identifiants incorrects ou problème de connexion");
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
+  const handlePasswordReset = async () => {
+  setResetMessage("");
+  if (!resetEmail) {
+    setResetMessage("Veuillez entrer votre adresse e-mail.");
+    return;
+  }
 
-  return (
-    <Container maxWidth="xs">
-      <Paper elevation={3} sx={{ p: 4, mt: 8 }}>
-        <Typography variant="h4" component="h1" align="center" gutterBottom>
-          Connexion
-        </Typography>
-        
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+  try {
+    await sendPasswordResetEmail(auth, resetEmail);
+    setResetMessage("Email de réinitialisation envoyé. Vérifiez votre boîte mail.");
+  } catch (err) {
+    setResetMessage("Erreur lors de l'envoi de l'email. Vérifiez l'adresse.");
+    console.error(err);
+  }
+};
 
-        <Box component="form" onSubmit={handleSubmit}>
-          <TextField
-            label="Email"
-            type="email"
-            fullWidth
-            margin="normal"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <TextField
-            label="Mot de passe"
-            type="password"
-            fullWidth
-            margin="normal"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            sx={{ mt: 3 }}
-            disabled={loading}
-          >
-            {loading ? 'Connexion en cours...' : 'Se connecter'}
-          </Button>
-        </Box>
-      </Paper>
-    </Container>
+
+return (
+    <div className="login-container">
+      <div className="login-wrapper">
+        <div className="login-left">
+          <div className="welcome-text">
+            <div className="welcome-circle"></div>
+            <Typography variant="h3" className="welcome-title">
+              Bienvenue sur <span>EduChat</span>
+            </Typography>
+            <Typography variant="body1" className="welcome-description">
+              Discutez, échangez et apprenez en temps réel avec une communauté dynamique. Rejoignez-nous et transformez votre manière de collaborer.
+            </Typography>
+            <ul className="welcome-points">
+              <li>💬 Discussions instantanées</li>
+              <li>📚 Partage de ressources</li>
+              <li>👥 Collaboration étudiante</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="login-right">
+          <Paper elevation={3} className="login-paper">
+            <Typography variant="h4" component="h1" className="login-title" gutterBottom>
+              Connexion
+            </Typography>
+
+            {error && (
+              <Alert severity="error" className="login-alert">
+                {error}
+              </Alert>
+            )}
+
+            <Box component="form" onSubmit={handleSubmit}>
+              <TextField
+                label="Email"
+                type="email"
+                fullWidth
+                margin="normal"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="login-input"
+              />
+              <TextField
+                label="Mot de passe"
+                type="password"
+                fullWidth
+                margin="normal"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="login-input"
+              />
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                className="login-button"
+                disabled={loading}
+              >
+                {loading ? "Connexion en cours..." : "Se connecter"}
+              </Button>
+            </Box>
+            <Box textAlign="right" mt={1}>
+  <Link
+    component="button"
+    variant="body2"
+    onClick={() => setShowReset(!showReset)}
+    className="forgot-password-link"
+  >
+    Mot de passe oublié ?
+  </Link>
+</Box>
+{showReset && (
+  <Box mt={2}>
+    {resetMessage === "Email de réinitialisation envoyé. Vérifiez votre boîte mail." ? (
+      <Alert severity="success" sx={{ mt: 2 }}>
+        {resetMessage}
+      </Alert>
+    ) : (
+      <>
+        <TextField
+          label="Votre email"
+          type="email"
+          fullWidth
+          margin="normal"
+          value={resetEmail}
+          onChange={(e) => setResetEmail(e.target.value)}
+          className="login-input"
+        />
+        <Button
+          variant="outlined"
+          fullWidth
+          onClick={handlePasswordReset}
+          className="login-button"
+        >
+          Envoyer l’email de réinitialisation
+        </Button>
+        {resetMessage && resetMessage !== "Email de réinitialisation envoyé. Vérifiez votre boîte mail." && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            {resetMessage}
+          </Alert>
+        )}
+      </>
+    )}
+  </Box>
+)}
+
+            <div className="register-footer">
+              <Typography variant="body2">
+                Pas de compte ?{" "}
+                <Link href="/register" className="register-link">
+                  S'inscrire
+                </Link>
+              </Typography>
+            </div>
+          </Paper>
+        </div>
+      </div>
+    </div>
   );
+
 };
 
 export default LoginPage;
