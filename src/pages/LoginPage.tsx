@@ -1,8 +1,7 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { useNavigate, useLocation } from "react-router-dom";
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../services/firebase";
-import { sendPasswordResetEmail } from "firebase/auth";
 
 import {
   Box,
@@ -13,7 +12,7 @@ import {
   Alert,
   Link,
 } from "@mui/material";
-import "../App.css"; // Importez le fichier CSS
+import "../App.css";
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -21,10 +20,15 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const [showReset, setShowReset] = useState(false);
-const [resetEmail, setResetEmail] = useState("");
-const [resetMessage, setResetMessage] = useState("");
+  const location = useLocation();
 
+  // Récupération de l’état envoyé depuis la page inscription (si présent)
+  const fromRegister = location.state?.fromRegister || false;
+  const [showSuccessMessage, setShowSuccessMessage] = useState(fromRegister);
+
+  const [showReset, setShowReset] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetMessage, setResetMessage] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +37,7 @@ const [resetMessage, setResetMessage] = useState("");
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate("/"); // Redirige vers la page d'accueil après connexion
+      navigate("/"); // redirection après connexion réussie
     } catch (err) {
       setError("Identifiants incorrects ou problème de connexion");
       console.error(err);
@@ -41,26 +45,31 @@ const [resetMessage, setResetMessage] = useState("");
       setLoading(false);
     }
   };
+
   const handlePasswordReset = async () => {
-  setResetMessage("");
-  if (!resetEmail) {
-    setResetMessage("Veuillez entrer votre adresse e-mail.");
-    return;
-  }
+    setResetMessage("");
+    if (!resetEmail) {
+      setResetMessage("Veuillez entrer votre adresse e-mail.");
+      return;
+    }
 
-  try {
-    await sendPasswordResetEmail(auth, resetEmail);
-    setResetMessage("Email de réinitialisation envoyé. Vérifiez votre boîte mail.");
-  } catch (err) {
-    setResetMessage("Erreur lors de l'envoi de l'email. Vérifiez l'adresse.");
-    console.error(err);
-  }
-};
+    try {
+      await sendPasswordResetEmail(auth, resetEmail);
+      setResetMessage("Email de réinitialisation envoyé. Vérifiez votre boîte mail.");
+    } catch (err) {
+      setResetMessage("Erreur lors de l'envoi de l'email. Vérifiez l'adresse.");
+      console.error(err);
+    }
+  };
 
-
-return (
+  return (
+    
     <div className="login-container">
+      
       <div className="login-wrapper">
+
+
+
         <div className="login-left">
           <div className="welcome-text">
             <div className="welcome-circle"></div>
@@ -80,6 +89,16 @@ return (
 
         <div className="login-right">
           <Paper elevation={3} className="login-paper">
+                    {/* Message succès inscription */}
+        {showSuccessMessage && (
+          <Alert
+            severity="success"
+            onClose={() => setShowSuccessMessage(false)}
+            sx={{ mb: 2 }}
+          >
+            Inscription réussie, vous pouvez maintenant vous connecter.
+          </Alert>
+        )}
             <Typography variant="h4" component="h1" className="login-title" gutterBottom>
               Connexion
             </Typography>
@@ -121,50 +140,52 @@ return (
                 {loading ? "Connexion en cours..." : "Se connecter"}
               </Button>
             </Box>
+
             <Box textAlign="right" mt={1}>
-  <Link
-    component="button"
-    variant="body2"
-    onClick={() => setShowReset(!showReset)}
-    className="forgot-password-link"
-  >
-    Mot de passe oublié ?
-  </Link>
-</Box>
-{showReset && (
-  <Box mt={2}>
-    {resetMessage === "Email de réinitialisation envoyé. Vérifiez votre boîte mail." ? (
-      <Alert severity="success" sx={{ mt: 2 }}>
-        {resetMessage}
-      </Alert>
-    ) : (
-      <>
-        <TextField
-          label="Votre email"
-          type="email"
-          fullWidth
-          margin="normal"
-          value={resetEmail}
-          onChange={(e) => setResetEmail(e.target.value)}
-          className="login-input"
-        />
-        <Button
-          variant="outlined"
-          fullWidth
-          onClick={handlePasswordReset}
-          className="login-button"
-        >
-          Envoyer l’email de réinitialisation
-        </Button>
-        {resetMessage && resetMessage !== "Email de réinitialisation envoyé. Vérifiez votre boîte mail." && (
-          <Alert severity="error" sx={{ mt: 2 }}>
-            {resetMessage}
-          </Alert>
-        )}
-      </>
-    )}
-  </Box>
-)}
+              <Link
+                component="button"
+                variant="body2"
+                onClick={() => setShowReset(!showReset)}
+                className="forgot-password-link"
+              >
+                Mot de passe oublié ?
+              </Link>
+            </Box>
+
+            {showReset && (
+              <Box mt={2}>
+                {resetMessage === "Email de réinitialisation envoyé. Vérifiez votre boîte mail." ? (
+                  <Alert severity="success" sx={{ mt: 2 }}>
+                    {resetMessage}
+                  </Alert>
+                ) : (
+                  <>
+                    <TextField
+                      label="Votre email"
+                      type="email"
+                      fullWidth
+                      margin="normal"
+                      value={resetEmail}
+                      onChange={(e) => setResetEmail(e.target.value)}
+                      className="login-input"
+                    />
+                    <Button
+                      variant="outlined"
+                      fullWidth
+                      onClick={handlePasswordReset}
+                      className="login-button"
+                    >
+                      Envoyer l’email de réinitialisation
+                    </Button>
+                    {resetMessage && resetMessage !== "Email de réinitialisation envoyé. Vérifiez votre boîte mail." && (
+                      <Alert severity="error" sx={{ mt: 2 }}>
+                        {resetMessage}
+                      </Alert>
+                    )}
+                  </>
+                )}
+              </Box>
+            )}
 
             <div className="register-footer">
               <Typography variant="body2">
@@ -179,7 +200,6 @@ return (
       </div>
     </div>
   );
-
 };
 
 export default LoginPage;

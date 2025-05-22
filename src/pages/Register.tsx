@@ -4,7 +4,7 @@ import { doc, setDoc, getDocs, collection, query, where } from 'firebase/firesto
 import { auth, db } from '../services/firebase';
 import { TextField, Button, Container, Typography, Link } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import '../App.css'; // CSS global contenant les styles ci-dessous
+import '../App.css'; // CSS global contenant les styles
 
 const Register: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -41,7 +41,8 @@ const Register: React.FC = () => {
         createdAt: new Date(),
       });
 
-      navigate('/');
+      // Redirection vers la page connexion après inscription réussie
+navigate('/login', { state: { fromRegister: true } });
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
