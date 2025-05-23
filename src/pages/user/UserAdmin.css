@@ -1,0 +1,104 @@
+/* Conteneur général des messages */
+.message-item {
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  background-color: #fafafa;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+  cursor: default;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.message-item:hover {
+  background-color: #f0f4ff;
+  box-shadow: 0 4px 10px rgb(0 0 0 / 0.1);
+}
+
+/* Pour les éléments cliquables */
+.clickable {
+  cursor: pointer;
+  color: #1a73e8;
+  transition: color 0.25s ease, text-decoration 0.25s ease;
+  user-select: none;
+}
+
+.clickable:hover {
+  text-decoration: underline;
+  color: #155ab6;
+}
+
+/* Boîte de dialogue des messages */
+.message-dialog .MuiDialog-paper {
+  min-height: 70vh;
+  max-width: 700px;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+/* Contenu du message */
+.message-content {
+  margin: 8px 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #333;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Informations utilisateur et temps */
+.message-user {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #222;
+}
+
+.message-time {
+  font-size: 0.75rem;
+  color: #888;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+/* Liste des groupes */
+.group-list-item {
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.05);
+  margin-bottom: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.group-list-item:hover {
+  background-color: #e8f0fe;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Responsive : réduire les marges sur petit écran */
+@media (max-width: 600px) {
+  .message-dialog .MuiDialog-paper {
+    min-height: 60vh;
+    max-width: 100%;
+    padding: 16px;
+    border-radius: 8px;
+  }
+
+  .message-item, .group-list-item {
+    padding: 10px 12px;
+  }
+
+  .message-content {
+    font-size: 0.9rem;
+  }
+}

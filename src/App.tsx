@@ -8,11 +8,13 @@ import HomePage from './pages/HomePage';
 import GroupChatPage from './pages/GroupChatPage'; 
 import Register from './pages/Register';
 
+
 import ResetPasswordPage from './pages/ResetPasswordPage';
 
 
 
 import CreateGroupPage from './pages/groupe/CreateGroup';  // Importer la page de création de groupe
+import UserAdminControl from './pages/user/UserAdminControl';
 
 function App() {
   return (
@@ -26,6 +28,8 @@ function App() {
           <Route path="/register" element={<Register />} />
 
 <Route path="/reset" element={<ResetPasswordPage />} />
+<Route path="/admin/users" element={<UserAdminControl />} />
+
 
           {/* Page de connexion */}
           <Route path="/login" element={<LoginPage />} />

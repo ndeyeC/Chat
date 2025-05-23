@@ -5,7 +5,6 @@ import {
   Button,
   TextField,
   Paper,
-  Container,
   List,
   ListItem,
   ListItemText,
@@ -14,7 +13,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Avatar,
   Divider,
 } from "@mui/material";
 import {
@@ -25,7 +23,6 @@ import {
   updateDoc,
   deleteDoc,
   query,
-  where,
 } from "firebase/firestore";
 import { db, auth } from "../services/firebase";
 import { useNavigate } from "react-router-dom";
@@ -41,7 +38,8 @@ import {
   Send as SendIcon,
   Forum as ForumIcon,
 } from "@mui/icons-material";
-import "./pages.styles.css";
+import "./user/UserAdmin.css";
+;
 
 interface Group {
   id: string;
@@ -61,6 +59,76 @@ interface Message {
   groupId: string;
 }
 
+interface GroupMessagesProps {
+  groupId: string;
+  onClose: () => void;
+  onDeleteMessage: (messageId: string) => void;
+}
+
+const GroupMessages: React.FC<GroupMessagesProps> = ({ groupId, onClose, onDeleteMessage }) => {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchMessages = async () => {
+      try {
+        const messagesQuery = query(collection(db, "groups", groupId, "messages"));
+        const messagesSnapshot = await getDocs(messagesQuery);
+        const messagesData = messagesSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: doc.data().createdAt?.toDate() || new Date(),
+        })) as Message[];
+        
+        setMessages(messagesData.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()));
+      } catch (error) {
+        console.error("Error fetching messages:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMessages();
+  }, [groupId]);
+
+  return (
+    <Dialog open={true} onClose={onClose} maxWidth="md" fullWidth>
+      <DialogTitle>Messages du groupe</DialogTitle>
+      <DialogContent>
+        {loading ? (
+          <Typography>Chargement...</Typography>
+        ) : messages.length === 0 ? (
+          <Typography>Aucun message dans ce groupe</Typography>
+        ) : (
+          <List sx={{ maxHeight: '60vh', overflow: 'auto' }}>
+            {messages.map((message) => (
+              <Paper key={message.id} sx={{ p: 2, mb: 2 }}>
+                <Box display="flex" justifyContent="space-between">
+                  <Typography fontWeight="bold">{message.senderUsername}</Typography>
+                  <IconButton 
+                    size="small" 
+                    onClick={() => onDeleteMessage(message.id)}
+                    color="error"
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+                <Typography>{message.text}</Typography>
+                <Typography variant="caption" color="textSecondary">
+                  {message.createdAt.toLocaleString()}
+                </Typography>
+              </Paper>
+            ))}
+          </List>
+        )}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Fermer</Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
 const AdminPage: React.FC = () => {
   const navigate = useNavigate();
   const [groupName, setGroupName] = useState("");
@@ -69,12 +137,13 @@ const AdminPage: React.FC = () => {
   const [recentMessages, setRecentMessages] = useState<Message[]>([]);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [stats, setStats] = useState({
     totalGroups: 0,
     activeUsers: 0,
     messagesToday: 0,
     totalMessages: 0,
-    totalUsers: 0, // <-- Ajout du total utilisateurs
+    totalUsers: 0,
   });
 
   const handleLogout = async () => {
@@ -121,7 +190,6 @@ const AdminPage: React.FC = () => {
       // Fetch recent messages (last 5)
       const allMessages: Message[] = [];
       for (const group of groupsData.slice(0, 3)) {
-        // Limit to 3 groups to avoid too many reads
         const messagesQuery = query(
           collection(db, "groups", group.id, "messages")
         );
@@ -142,11 +210,11 @@ const AdminPage: React.FC = () => {
           .slice(0, 5)
       );
 
-      // Récupérer le nombre total d'utilisateurs
+      // Get total users count
       const usersSnapshot = await getDocs(collection(db, "users"));
       const totalUsersCount = usersSnapshot.size;
 
-      // Mettre à jour les stats
+      // Update stats
       setStats({
         totalGroups: groupsData.length,
         activeUsers: groupsData.reduce(
@@ -155,7 +223,7 @@ const AdminPage: React.FC = () => {
         ),
         messagesToday: todayMessagesCount,
         totalMessages: messagesCount,
-        totalUsers: totalUsersCount, // <-- mise à jour ici
+        totalUsers: totalUsersCount,
       });
     };
 
@@ -213,6 +281,19 @@ const AdminPage: React.FC = () => {
       setGroups(groups.filter((group) => group.id !== groupId));
     } catch (error) {
       console.error("Error deleting group: ", error);
+    }
+  };
+
+  const handleDeleteMessage = async (messageId: string) => {
+    if (!selectedGroupId) return;
+    
+    try {
+      await deleteDoc(doc(db, "groups", selectedGroupId, "messages", messageId));
+      // Update recent messages
+      setRecentMessages(recentMessages.filter(msg => msg.id !== messageId));
+      // You might want to refresh stats here
+    } catch (error) {
+      console.error("Error deleting message:", error);
     }
   };
 
@@ -393,20 +474,31 @@ const AdminPage: React.FC = () => {
                       <Box>
                         <IconButton
                           edge="end"
-                          onClick={() => handleEditGroup(group)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditGroup(group);
+                          }}
                           sx={{ color: "#4f46e5" }}
                         >
                           <EditIcon />
                         </IconButton>
                         <IconButton
                           edge="end"
-                          onClick={() => handleDeleteGroup(group.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteGroup(group.id);
+                          }}
                           sx={{ color: "#ef4444" }}
                         >
                           <DeleteIcon />
                         </IconButton>
                       </Box>
                     }
+                    onClick={() => setSelectedGroupId(group.id)}
+                    sx={{
+                      cursor: 'pointer',
+                      '&:hover': { backgroundColor: 'action.hover' }
+                    }}
                   >
                     <ListItemText
                       primary={
@@ -445,7 +537,7 @@ const AdminPage: React.FC = () => {
         </Paper>
       </Box>
 
-      {/* Dialog pour l'édition */}
+      {/* Dialog pour l'édition de groupe */}
       <Dialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}
@@ -498,6 +590,15 @@ const AdminPage: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Dialog pour les messages du groupe */}
+      {selectedGroupId && (
+        <GroupMessages
+          groupId={selectedGroupId}
+          onClose={() => setSelectedGroupId(null)}
+          onDeleteMessage={handleDeleteMessage}
+        />
+      )}
     </Box>
   );
 };
