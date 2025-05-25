@@ -22,7 +22,7 @@ import * as vader from 'vader-sentiment';
 class FrenchSentimentAnalyzer {
   constructor() {
     this.lexicon = {
-      //test  Mots positifs
+      // Mots positifs
       'super': 3.5, 'génial': 4.0, 'excellent': 4.2, 'parfait': 4.1,
       'content': 3.3, 'heureux': 3.7, 'bon': 2.5, 'bien': 2.0,
       'adorable': 3.8, 'magnifique': 3.9, 'merveilleux': 3.6,
