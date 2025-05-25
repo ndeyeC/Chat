@@ -17,6 +17,91 @@ import { Avatar, Button, TextField, IconButton, CircularProgress } from '@mui/ma
 import SendIcon from '@mui/icons-material/Send';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import * as vader from 'vader-sentiment';
+
+class FrenchSentimentAnalyzer {
+  constructor() {
+    this.lexicon = {
+      // Mots positifs
+      'super': 3.5, 'génial': 4.0, 'excellent': 4.2, 'parfait': 4.1,
+      'content': 3.3, 'heureux': 3.7, 'bon': 2.5, 'bien': 2.0,
+      'adorable': 3.8, 'magnifique': 3.9, 'merveilleux': 3.6,
+      'cool': 2.8, 'sympa': 2.7, 'top': 3.0,
+
+      // Mots négatifs
+      'pas': -1.0, 'non': -1.2, 'jamais': -1.5, 'rien': -1.3,
+      'déteste': -4.0, 'haine': -4.3, 'mauvais': -2.5, 'mal': -2.0,
+      'terrible': -3.8, 'horrible': -3.9, 'nul': -3.0, 'pourri': -3.2,
+      'déçu': -2.8, 'triste': -2.5, 'guerre': -4.0,
+
+      // Wolof de base
+      'baax': 3.5, 'rafet': 3.8, 'neex': 3.6, 'teranga': 4.2,
+      'bonn': -3.5, 'xiif': -3.2, 'yagg': -2.8, 'tàng': -3.6,
+      'jamm': 3.7, 'sant': 3.0
+    };
+
+    this.negations = ['pas', 'non', 'jamais', 'rien', 'aucun', 'sans', 'ni'];
+    this.intensifiers = {
+      'très': 1.3, 'vraiment': 1.4, 'trop': 1.2, 'extrêmement': 1.5,
+      'complètement': 1.4, 'absolument': 1.3, 'lool': 1.4,
+      'hyper': 1.3, 'tellement': 1.2, 'grave': 1.1
+    };
+  }
+
+  analyze(text) {
+    if (!text || typeof text !== 'string') return 'neutre';
+
+    const words = text.toLowerCase().match(/\b[\w+]+\b/g) || [];
+    let score = 0;
+    let wordCount = 0;
+    let negation = false;
+    let intensity = 1;
+
+    words.forEach((word, index) => {
+      // Vérifie les négations
+      if (this.negations.includes(word)) {
+        negation = true;
+        return;
+      }
+
+      // Vérifie les intensificateurs
+      if (this.intensifiers[word]) {
+        intensity *= this.intensifiers[word];
+        return;
+      }
+
+      // Vérifie le lexique
+      if (this.lexicon[word]) {
+        let wordScore = this.lexicon[word];
+
+        // Applique la négation si nécessaire
+        if (negation) {
+          wordScore *= -0.7;
+          negation = false;
+        }
+
+        score += wordScore;
+        wordCount++;
+      }
+    });
+
+    // Score moyen si des mots trouvés
+    if (wordCount > 0) {
+      score = (score / wordCount) * intensity;
+    } else {
+      // Analyse basique pour texte sans mots du lexique
+      if (text.length > 30) return 'neutre';
+      if (/(!{2,}|[A-Z]{3,})/.test(text)) return 'positif';
+      if (/\.{3,}/.test(text)) return 'négatif';
+      return 'neutre';
+    }
+
+    // Détermine le sentiment final
+    if (score >= 0.5) return 'positif';
+    if (score <= -0.5) return 'négatif';
+    return 'neutre';
+  }
+}
 
 const Chat = ({ groupId }) => {
   const [messages, setMessages] = useState([]);
@@ -27,6 +112,7 @@ const Chat = ({ groupId }) => {
   const messagesContainerRef = useRef(null);
   const navigate = useNavigate();
   const [group, setGroup] = useState(null);
+  const analyzer = useRef(new FrenchSentimentAnalyzer()).current;
 
   useEffect(() => {
     const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
@@ -68,7 +154,6 @@ const Chat = ({ groupId }) => {
     return () => unsubscribe();
   }, [groupId]);
 
-
   useEffect(() => {
     const container = messagesContainerRef.current;
     if (container) {
@@ -81,11 +166,12 @@ const Chat = ({ groupId }) => {
       return () => container.removeEventListener('scroll', handleScroll);
     }
   }, []);
-useEffect(() => {
-  if (!loading && messages.length > 0) {
-    scrollToBottom();
-  }
-}, [loading, messages]);
+
+  useEffect(() => {
+    if (!loading && messages.length > 0) {
+      scrollToBottom();
+    }
+  }, [loading, messages]);
 
   useEffect(() => {
     if (!groupId) return;
@@ -104,18 +190,39 @@ useEffect(() => {
     fetchGroup();
   }, [groupId]);
 
+  const analyzeSentiment = (text) => {
+    // Analyse avec VADER
+    const vaderResult = vader.SentimentIntensityAnalyzer.polarity_scores(text);
+    const vaderCompound = vaderResult.compound;
+
+    // Analyse avec notre analyseur français
+    const frenchResult = analyzer.analyze(text);
+    const frenchScore = frenchResult === 'positif' ? 1 : frenchResult === 'négatif' ? -1 : 0;
+
+    // Combinaison des résultats (poids 60% VADER, 40% analyseur français)
+    const combinedScore = (vaderCompound * 0.6) + (frenchScore * 0.4);
+
+    // Détermination du sentiment final
+    if (combinedScore >= 0.05) return 'positif';
+    if (combinedScore <= -0.05) return 'négatif';
+    return 'neutre';
+  };
+
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !currentUserData) return;
 
     const messageToSend = newMessage;
     setNewMessage('');
 
+    const sentiment = analyzeSentiment(messageToSend);
+
     try {
       await addDoc(collection(db, 'groups', groupId, 'messages'), {
         text: messageToSend,
         senderId: auth.currentUser?.uid,
         senderUsername: currentUserData.username,
-        createdAt: Timestamp.now()
+        createdAt: Timestamp.now(),
+        sentimentType: sentiment,
       });
     } catch (error) {
       console.error("Erreur lors de l'envoi du message :", error);
@@ -159,13 +266,14 @@ useEffect(() => {
     if (diff === 0) return 'Aujourd\'hui';
     if (diff === 1) return 'Hier';
     if (diff === 2) return 'Avant-hier';
-    return `${date.getDate().toString().padStart(2, '0')} - ${String(date.getMonth() + 1).padStart(2, '0')} - ${date.getFullYear()}`;
+    return `${date.getDate().toString().padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
   };
 
   const groupMessagesByDate = (messages) => {
     const grouped = {};
     messages.forEach(msg => {
       const date = msg.createdAt?.toDate();
+      if (!date) return;
       const dateKey = date.toDateString();
       if (!grouped[dateKey]) {
         grouped[dateKey] = [];
@@ -218,6 +326,10 @@ useEffect(() => {
                 const displayUsername = isCurrentUser ? 'Vous' : msg.senderUsername || 'Anonyme';
                 const avatarLetter = displayUsername.charAt(0).toUpperCase();
 
+                let sentimentEmoji = '😐'; // Default neutral
+                if (msg.sentimentType === 'positif') sentimentEmoji = '😊';
+                else if (msg.sentimentType === 'négatif') sentimentEmoji = '⚠️';
+
                 return (
                   <div
                     key={msg.id}
@@ -233,7 +345,7 @@ useEffect(() => {
                         <span className={styles.senderName}>{displayUsername}</span>
                       )}
                       <div className={styles.messageBubble}>
-                        {msg.text}
+                        {msg.text} <span title={`Sentiment: ${msg.sentimentType}`}>{sentimentEmoji}</span>
                         <div className={styles.messageTime}>
                           {msg.createdAt?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || ''}
                         </div>
