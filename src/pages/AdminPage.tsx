@@ -241,7 +241,7 @@ const GroupMessages: React.FC<GroupMessagesProps> = ({
           </Box>
         ) : filteredMessages.length === 0 ? (
           <Typography variant="body1" p={2}>
-            Aucun message {filter !== 'all' ? filter === 'positive' ? 'positif' : 'négatif' : ''} dans ce groupe
+            Aucun s message {filter !== 'all' ? filter === 'positive' ? 'positif' : 'négatif' : ''} dans ce groupe
           </Typography>
         ) : (
           <List sx={{ maxHeight: '60vh', overflow: 'auto' }}>
